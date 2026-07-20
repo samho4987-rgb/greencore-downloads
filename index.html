@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>그린코아 프로그램 다운로드</title>
+<style>
+  :root {
+    --bg: #0f1522; --panel: #171f30; --inner: #1e2840;
+    --border: #2a3550; --text: #e8ecf4; --muted: #8b95ab;
+    --teal: #3fbf7f; --teal-dark: #2f9c66;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text); min-height: 100vh;
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    display: flex; flex-direction: column; align-items: center; padding: 48px 20px;
+  }
+  header { text-align: center; margin-bottom: 40px; }
+  header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  header h1 span { color: var(--teal); }
+  header p { margin-top: 8px; color: var(--muted); font-size: 14px; }
+  #products { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 560px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px 24px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .card .top { display: flex; align-items: center; gap: 12px; }
+  .card .icon { font-size: 26px; }
+  .card .name { font-size: 17px; font-weight: 700; }
+  .card .ver {
+    margin-left: auto; font-size: 12px; color: var(--teal);
+    background: rgba(63,191,127,.12); border: 1px solid rgba(63,191,127,.35);
+    padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+  }
+  .card .desc { color: var(--muted); font-size: 13px; line-height: 1.6; }
+  .card .meta { color: var(--muted); font-size: 11.5px; }
+  .btn {
+    display: block; text-align: center; text-decoration: none;
+    background: var(--teal); color: #fff; font-weight: 700; font-size: 14px;
+    padding: 12px; border-radius: 9px; transition: background .15s;
+  }
+  .btn:hover { background: var(--teal-dark); }
+  .btn.disabled { background: var(--inner); color: var(--muted); pointer-events: none; }
+  .guide {
+    background: var(--inner); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .guide h4 { font-size: 12.5px; font-weight: 700; margin-bottom: 9px; }
+  .guide ol { margin: 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; line-height: 1.9; }
+  .guide ol b { color: var(--text); font-weight: 600; }
+  .guide .alt { margin-top: 12px; padding-top: 11px; border-top: 1px dashed var(--border); }
+  .guide .alt .label { font-size: 12px; color: var(--text); font-weight: 600; margin-bottom: 6px; }
+  .guide .alt .sub { font-size: 11.5px; color: var(--muted); line-height: 1.7; }
+  .guide .alt ol { margin-top: 7px; font-size: 12px; line-height: 1.85; }
+  .guide code {
+    display: inline-block; margin-top: 6px; user-select: all; cursor: text;
+    background: rgba(63,191,127,.12); border: 1px solid rgba(63,191,127,.35);
+    color: var(--teal); padding: 4px 9px; border-radius: 6px;
+    font-size: 12px; font-family: ui-monospace, Menlo, Consolas, monospace;
+  }
+  .guide .note {
+    margin-top: 11px; font-size: 11.5px; line-height: 1.65;
+    color: #e0b96a; background: rgba(224,185,106,.09);
+    border: 1px solid rgba(224,185,106,.28); border-radius: 8px; padding: 9px 11px;
+  }
+  footer { margin-top: 48px; color: var(--muted); font-size: 12px; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1><span>그린코아</span> 프로그램 다운로드</h1>
+  <p>아래에서 필요한 프로그램의 최신 버전을 내려받으세요.</p>
+</header>
+<div id="products"><p style="color:var(--muted)">목록을 불러오는 중…</p></div>
+<footer>© 그린코아공인중개사사무소 · 문의: 그린코아 이정훈</footer>
+
+<script>
+async function latestRelease(repo) {
+  const r = await fetch(`https://api.github.com/repos/${repo}/releases/latest`);
+  if (!r.ok) throw new Error(`release fetch ${r.status}`);
+  return r.json();
+}
+
+function pickAsset(release) {
+  const assets = release.assets || [];
+  // .exe(설치형) 우선 → .plugin(Claude 플러그인) → .zip
+  return assets.find(a => a.name.toLowerCase().endsWith('.exe'))
+      || assets.find(a => a.name.toLowerCase().endsWith('.plugin'))
+      || assets.find(a => a.name.toLowerCase().endsWith('.zip'))
+      || null;
+}
+
+function renderGuide(card, p) {
+  if (!p.install && !p.marketplace) return;
+  const slot = card.querySelector('.guide-slot');
+  const box = document.createElement('div');
+  box.className = 'guide';
+  let html = '';
+  if (p.install) {
+    html += '<h4>설치 방법 — 내려받은 파일로 설치</h4><ol>' +
+      p.install.map(step => `<li>${step}</li>`).join('') + '</ol>';
+  }
+  if (p.marketplace) {
+    html += `<div class="alt">
+        <div class="label">✨ 더 간편한 방법 — 마켓플레이스 등록 (자동 업데이트)</div>
+        <div class="sub">파일을 내려받지 않아도 되고, 새 버전이 나오면 자동으로 알려줍니다.</div>`;
+    if (p.marketplaceSteps) {
+      html += '<ol>' + p.marketplaceSteps.map(step => `<li>${step}</li>`).join('') + '</ol>';
+    }
+    html += `<code>${p.marketplace}</code></div>`;
+  }
+  if (p.note) html += `<div class="note">${p.note}</div>`;
+  box.innerHTML = html;
+  slot.appendChild(box);
+}
+
+async function render() {
+  const box = document.getElementById('products');
+  let products;
+  try {
+    products = await (await fetch('products.json?v=' + Date.now())).json();
+  } catch (e) {
+    box.innerHTML = '<p style="color:var(--muted)">제품 목록을 불러오지 못했습니다.</p>';
+    return;
+  }
+  box.innerHTML = '';
+  for (const p of products) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="top">
+        <span class="icon">${p.icon || '📦'}</span>
+        <span class="name">${p.name}</span>
+        <span class="ver">확인 중…</span>
+      </div>
+      <div class="desc">${p.desc || ''}</div>
+      <a class="btn disabled" href="#">다운로드 준비 중…</a>
+      <div class="meta"></div>
+      <div class="guide-slot"></div>`;
+    box.appendChild(card);
+
+    latestRelease(p.repo).then(rel => {
+      const asset = pickAsset(rel);
+      card.querySelector('.ver').textContent = rel.tag_name || '';
+      if (asset) {
+        const btn = card.querySelector('.btn');
+        const isPlugin = asset.name.toLowerCase().endsWith('.plugin');
+        btn.classList.remove('disabled');
+        btn.href = asset.browser_download_url;
+        btn.textContent = isPlugin
+          ? `⬇ 플러그인 파일 받기 (${(asset.size / 1048576).toFixed(0)} MB)`
+          : `⬇ ${p.name} 다운로드 (${(asset.size / 1048576).toFixed(0)} MB)`;
+        renderGuide(card, p);
+        const d = new Date(rel.published_at);
+        card.querySelector('.meta').textContent =
+          `${asset.name} · ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} 배포`;
+      } else {
+        card.querySelector('.btn').textContent = '배포 파일 준비 중';
+      }
+    }).catch(() => {
+      card.querySelector('.ver').textContent = '－';
+      card.querySelector('.btn').textContent = '잠시 후 다시 시도해 주세요';
+    });
+  }
+}
+render();
+</script>
+</body>
+</html>
