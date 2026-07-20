@@ -59,6 +59,12 @@
     color: var(--teal); padding: 4px 9px; border-radius: 6px;
     font-size: 12px; font-family: ui-monospace, Menlo, Consolas, monospace;
   }
+  .guide .post {
+    margin-top: 12px; padding: 11px 13px; border-radius: 9px;
+    background: rgba(63,191,127,.07); border: 1px solid rgba(63,191,127,.32);
+  }
+  .guide .post .label { font-size: 12.5px; font-weight: 700; color: var(--teal); margin-bottom: 7px; }
+  .guide .post ol { font-size: 12px; line-height: 1.85; }
   .guide .note {
     margin-top: 11px; font-size: 11.5px; line-height: 1.65;
     color: #e0b96a; background: rgba(224,185,106,.09);
@@ -109,6 +115,11 @@ function renderGuide(card, p) {
       html += '<ol>' + p.marketplaceSteps.map(step => `<li>${step}</li>`).join('') + '</ol>';
     }
     html += `<code>${p.marketplace}</code></div>`;
+  }
+  if (p.postInstall) {
+    html += '<div class="post"><div class="label">✅ 설치 후 반드시 할 것 (두 방법 공통)</div><ol>' +
+      p.postInstall.map(step => `<li>${step}</li>`).join('') +
+      '</ol></div>';
   }
   if (p.note) html += `<div class="note">${p.note}</div>`;
   box.innerHTML = html;
