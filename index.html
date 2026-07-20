@@ -117,7 +117,7 @@ function renderGuide(card, p) {
     html += `<code>${p.marketplace}</code></div>`;
   }
   if (p.postInstall) {
-    html += '<div class="post"><div class="label">✅ 설치 후 반드시 할 것 (두 방법 공통)</div><ol>' +
+    html += '<div class="post"><div class="label">⚙️ 설치 후 반드시 할 것 (두 방법 공통)</div><ol>' +
       p.postInstall.map(step => `<li>${step}</li>`).join('') +
       '</ol></div>';
   }
